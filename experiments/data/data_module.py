@@ -1,3 +1,4 @@
+import cloudpickle
 import joblib
 import numpy as np
 import pandas as pd
@@ -167,3 +168,56 @@ class UKRegDataModule(OrganDataModule):
 
         self.mean = self.scaler.mean_[-1]
         self.std = self.scaler.scale_[-1]
+
+
+class UKRegDataModulev2(OrganDataModule):
+    def __init__(
+        self,
+        data_dir: str,
+        batch_size: int,
+        replace_organ: int = -1,
+        is_synth: bool = False,
+        test_size: float = 0.2,
+        control: bool = False,
+    ) -> None:
+        super().__init__(
+            batch_size=batch_size,
+            replace_organ=replace_organ,
+            is_synth=is_synth,
+            test_size=test_size,
+        )
+
+        self.data_dir = data_dir
+        self.dims = (0, 79)
+        self.control = control
+
+    def prepare_data(self) -> None:
+        self.DATA = pd.read_csv(f"{self.data_dir}/liver_processed.csv")
+
+        with open(f"{self.data_dir}/x_cols", "rb") as f:
+            self.x_cols = cloudpickle.load(f)
+
+        with open(f"{self.data_dir}/o_cols", "rb") as f:
+            self.o_cols = cloudpickle.load(f)
+
+        with open(f"{self.data_dir}/encoder", "rb") as f:
+            self.encoder = cloudpickle.load(f)
+
+        self.real_cols = self.x_cols + self.o_cols
+
+        if self.control:
+            self.o_cols = []
+            self.DATA = self.DATA[self.x_cols + ["Y", "CENS"]]
+        else:
+            self.DATA.loc[self.DATA.DCOD_0.isnull(), self.o_cols] = self.replace_organ
+        self.DATA.replace(np.nan, self.replace_organ, inplace=True)
+
+        self._train_processed, self._test_processed = train_test_split(
+            self.DATA, test_size=self.test_size
+        )
+
+        self.max = self._train_processed.Y.max()
+        self.min = self._train_processed.Y.min()
+
+        self.mean = self.encoder.scaler.mean_[-1]
+        self.std = self.encoder.scaler.scale_[-1]
