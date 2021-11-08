@@ -156,11 +156,6 @@ class OrganSync_Network(pl.LightningModule):
         rmse = torch.sqrt(self.loss(y_, y))
         synth_rmse = torch.sqrt(self.loss(synth_y, y))
 
-        # SCALE
-        mean, std = self.trainer.datamodule.mean, self.trainer.datamodule.std
-        y = y * std + mean
-        y_ = y_ * std + mean
-
         loss = torch.abs(y - y_)
         synth_loss = torch.abs(y - synth_y_scaled)
 
@@ -202,7 +197,6 @@ class OrganSync_Network(pl.LightningModule):
         u_s = result[:, 1]
         synth_y = result[:, 2]
 
-        mean, std = self.trainer.datamodule.mean, self.trainer.datamodule.std
-        synth_y_scaled = synth_y * std + mean
+        synth_y_scaled = synth_y
 
         return a_s, u_s, synth_y_scaled, synth_y, indices

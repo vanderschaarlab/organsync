@@ -95,10 +95,6 @@ def train(
 
         rmse = np.sqrt(mean_squared_error(Y_, Y))
 
-        # scale
-        Y_ = Y_ * dm.std + dm.mean
-        Y = Y * dm.std + dm.mean
-
         diff = np.abs(Y_ - Y).mean()
 
         run.log({"test - RMSE": rmse, "test - mean diff in days": diff})
