@@ -618,7 +618,8 @@ class OrganSync(Policy):
             sparse_train_set = dm_0._train_processed.iloc[c]
             kmf = lifelines.KaplanMeierFitter()  # Kaplain-meier has no expected time to
             kmf.fit(  # event in lifelines. Instead we take the
-                sparse_train_set.Y,  # median, i.e., before the median, 50% died
+                sparse_train_set.Y * dm_0.std
+                + dm_0.mean,  # median, i.e., before the median, 50% died
                 event_observed=sparse_train_set.CENS,
             )
 

@@ -49,6 +49,15 @@ class UNOSDataModule(OrganDataModule):
         liver_train["CENS"] = liver_train.PSTATUS - 1
         liver_test["CENS"] = liver_test.PSTATUS - 1
 
+        self.mean = liver_train.Y.mean()
+        self.std = liver_train.Y.std()
+
+        liver_train.Y -= self.mean
+        liver_train.Y /= self.std
+
+        liver_test.Y -= self.mean
+        liver_test.Y /= self.std
+
         self._train_processed, self._test_processed = liver_train, liver_test
 
 
@@ -98,6 +107,9 @@ class UNOS2UKRegDataModule(OrganDataModule):
 
         self.DATA = DATA
         liver_train, liver_test = train_test_split(DATA, test_size=self.test_size)
+
+        self.mean = self.scaler.mean_[-1]
+        self.std = self.scaler.scale_[-1]
 
         self._train_processed, self._test_processed = liver_train, liver_test
 
@@ -154,6 +166,9 @@ class UKRegDataModule(OrganDataModule):
         self.max = self._train_processed.Y.max()
         self.min = self._train_processed.Y.min()
 
+        self.mean = self.scaler.mean_[-1]
+        self.std = self.scaler.scale_[-1]
+
 
 class UKRegDataModulev2(OrganDataModule):
     def __init__(
@@ -203,3 +218,6 @@ class UKRegDataModulev2(OrganDataModule):
 
         self.max = self._train_processed.Y.max()
         self.min = self._train_processed.Y.min()
+
+        self.mean = self.encoder.scaler.mean_[-1]
+        self.std = self.encoder.scaler.scale_[-1]
